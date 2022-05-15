@@ -31,8 +31,15 @@ function PostItem({ name, img, caption }) {
       </div>
 
         <p className="p-5 truncate">
-            <span className="">{name}</span>
+            <span className="font-semibold mr-1">{name}</span>
+            {caption}
         </p>
+        
+        <form className="flex items-center p-4">
+            <EmojiHappyIcon className="postBtn"/>
+            <input type='text' placeholder="Comment!" className="border-none flex-1 focus:ring-0 outline-none"/>
+            <button className="font-semibold text-blue-400">Post</button>
+        </form>
 
     </div>
   );

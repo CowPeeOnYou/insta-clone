@@ -5,7 +5,7 @@ const posts = [
     id: "123",
     username: "aeroaero",
     userImg: "https://links.papareact.com/jjm",
-    caption: "aero is the best"
+    caption: "aero is the bestetyjetyktyek,tuklrl6rl658l57"
   },
   {
     id: "123",
