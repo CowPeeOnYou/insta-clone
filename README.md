@@ -9,7 +9,7 @@
 <li> NextAuth
 
 
-##Getting Started
+## Getting Started
 <ol>
 <li> <b>npm install</b> to install depenedencies
 <li> Initialise <b>.env</b> variable with own Google ID and Google Secret from Firebase
