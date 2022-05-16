@@ -10,10 +10,13 @@ import { HeartIcon as HeartIconFilled } from "@heroicons/react/solid";
 import {
   addDoc,
   collection,
+  doc,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -24,6 +27,8 @@ function PostItem({ id, name, img, caption, userImg }) {
   const { data: session } = useSession();
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState([]);
 
   useEffect(() => {
     onSnapshot(
@@ -35,7 +40,17 @@ function PostItem({ id, name, img, caption, userImg }) {
         setComments(snapshot.docs);
       }
     );
-  }, [db]);
+  }, [db, id]);
+
+  useEffect(() => {
+    onSnapshot(query(collection(db, "posts", id, "likes")), (snapshot) => {
+      setLikes(snapshot.docs);
+    });
+  }, [db, id]);
+
+  useEffect(() => {
+    setLiked(likes.findIndex((like) => like.id === session?.user?.uid) !== -1);
+  }, [likes]);
 
   const sendComment = async (e) => {
     e.preventDefault();
@@ -51,7 +66,15 @@ function PostItem({ id, name, img, caption, userImg }) {
     });
   };
 
-  console.log(comments)
+  const likeHandler = async (e) => {
+    if (liked) {
+      await deleteDoc(doc(db, "posts", id, "likes", session.user.uid));
+    } else {
+      await setDoc(doc(db, "posts", id, "likes", session.user.uid), {
+        username: session.user.username,
+      });
+    }
+  };
 
   return (
     <div className="bg-white my-7 border rounded-sm">
@@ -67,7 +90,12 @@ function PostItem({ id, name, img, caption, userImg }) {
       <img src={img} className="object-cover w-full" alt="" />
       <div className="flex justify-between px-4 py-4">
         <div className="flex space-x-4">
-          <HeartIcon className="postBtn" />
+          {liked ? (
+            <HeartIconFilled onClick={likeHandler} className="postBtn text-red-500" />
+          ) : (
+            <HeartIcon onClick={likeHandler} className="postBtn" />
+          )}
+
           <ChatIcon className="postBtn" />
           <PaperAirplaneIcon className="postBtn" />
         </div>
@@ -75,24 +103,31 @@ function PostItem({ id, name, img, caption, userImg }) {
       </div>
 
       <p className="p-5 truncate">
+        {likes.length > 0 && <p className="font-bold mb-1">{likes.length} likes</p>}
         <span className="font-semibold mr-1">{name}</span>
         {caption}
       </p>
       {comments.length > 0 && (
         <ul className="ml-10 h-20 overflow-y-scroll scrollbar-thumb-black scrollbar-thin">
-          {comments.map(comment=> (
-            <li key={comment.id} id={comment.id} className="flex items-center space-x-2 ">
-              <img src={comment.data().userImage} alt="" className="h-7 rounded-full m-2"/>
+          {comments.map((comment) => (
+            <li
+              key={comment.id}
+              id={comment.id}
+              className="flex items-center space-x-2 "
+            >
+              <img
+                src={comment.data().userImage}
+                alt=""
+                className="h-7 rounded-full m-2"
+              />
               <p className="text-sm flex-1">{comment.data().comment}</p>
               <Moment fromNow className="pr-5 text-xs">
                 {comment.data().timestamp?.toDate()}
               </Moment>
             </li>
           ))}
-          </ul>
+        </ul>
       )}
-
-
 
       {session && (
         <form className="flex items-center p-4">
