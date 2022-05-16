@@ -4,9 +4,9 @@ import { modalState } from "../atoms/modalAtom";
 import { Transition, Dialog } from "@headlessui/react";
 import { CameraIcon } from "@heroicons/react/outline";
 import { db, storage } from "../firebase";
-import { addDoc, serverTimestamp } from "firebase/firestore";
+import { addDoc, serverTimestamp, updateDoc, collection,doc} from "firebase/firestore";
 import { useSession } from "next-auth/react";
-import {ref, getDownloadUrl, uploadString} from '@firebase/storage'
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 
 function Modal() {
   const { data: session } = useSession();
@@ -39,10 +39,21 @@ function Modal() {
       timestamp: serverTimestamp(),
     });
 
-    console.log(docRef.id)
+    console.log(docRef.id);
 
-    const imageRef = ref(storage, `posts/${docRef.id}/id`)
+    const imageRef = ref(storage, `posts/${docRef.id}/image`);
+    await uploadString(imageRef, selectedFile, "data_url").then(
+      async (snapshot) => {
+        const downloadURL = await getDownloadURL(imageRef);
+        await updateDoc(doc(db, "posts", docRef.id), {
+          image: downloadURL,
+        });
+      }
+    );
 
+     setOpen(false)
+     setLoading(false)
+     setSelectedFile(null)
   };
 
   return (
@@ -133,7 +144,7 @@ function Modal() {
                       onClick={uploadPost}
                       className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring disabled:cursor-not-allowed hover:disabled:bg-gray-300"
                     >
-                      Upload!
+                     {loading ? "Uploading...": "Upload!"}
                     </button>
                   </div>
                 </div>
