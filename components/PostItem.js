@@ -18,6 +18,7 @@ import {
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
+import Moment from "react-moment";
 
 function PostItem({ id, name, img, caption, userImg }) {
   const { data: session } = useSession();
@@ -80,9 +81,12 @@ function PostItem({ id, name, img, caption, userImg }) {
       {comments.length > 0 && (
         <ul className="ml-10 h-20 overflow-y-scroll scrollbar-thumb-black scrollbar-thin">
           {comments.map(comment=> (
-            <li key={comment.id} id={comment.id} className="flex items-center space-x-2">
-              <img src={comment.data().userImage} alt="" className="h-7 rounded-full"/>
-              <p>{comment.data().comment}</p>
+            <li key={comment.id} id={comment.id} className="flex items-center space-x-2 ">
+              <img src={comment.data().userImage} alt="" className="h-7 rounded-full m-2"/>
+              <p className="text-sm flex-1">{comment.data().comment}</p>
+              <Moment fromNow className="pr-5 text-xs">
+                {comment.data().timestamp?.toDate()}
+              </Moment>
             </li>
           ))}
           </ul>
